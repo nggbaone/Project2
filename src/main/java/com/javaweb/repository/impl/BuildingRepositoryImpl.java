@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Repository;
 
@@ -29,11 +30,11 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 			sql.append(" INNER JOIN buildingrenttype ON building.id = buildingrenttype.buildingid ");
 			sql.append(" INNER JOIN renttype ON buildingrenttype.renttypeid = renttype.id ");
 		}
-		String rentareaFrom = (String)params.get("rentareaFrom");
-		String rentareaTo = (String)params.get("rentareaTo");
-		if (StringUtil.checkString(rentareaFrom) || StringUtil.checkString(rentareaTo)) {
-			sql.append(" INNER JOIN rentarea ON building.id = rentarea.buildingid ");
-		}
+//		String rentareaFrom = (String)params.get("rentareaFrom");
+//		String rentareaTo = (String)params.get("rentareaTo");
+//		if (StringUtil.checkString(rentareaFrom) || StringUtil.checkString(rentareaTo)) {
+//			sql.append(" INNER JOIN rentarea ON building.id = rentarea.buildingid ");
+//		}
 	}
 	
 	public static void queryNomal(Map<String, Object> params, StringBuilder where) {
@@ -59,12 +60,14 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 		String rentareaFrom = (String)params.get("rentareaFrom");
 		String rentareaTo = (String)params.get("rentareaTo");
 		if (StringUtil.checkString(rentareaFrom) || StringUtil.checkString(rentareaTo)) {
+			where.append(" AND EXISTS (SELECT * FROM rentarea WHERE building.id = rentarea.buildingid ");
 			if (StringUtil.checkString(rentareaFrom)) {
 				where.append(" AND rentarea.value >= " +rentareaFrom);
 			}
 			if (StringUtil.checkString(rentareaTo)) {
 				where.append(" AND rentarea.value <= " +rentareaTo);
 			}
+			where.append(") ");
 		}
 		
 		String rentpriceFrom = (String)params.get("rentpriceFrom");
@@ -78,14 +81,20 @@ public class BuildingRepositoryImpl implements BuildingRepository {
 			}
 		}
 		// java 7
+//		if(renttype != null && renttype.size() != 0) {
+//			List<String > code = new ArrayList<>();
+//			for (String item : renttype) {
+//				code.add("'" + item + "'");
+//			}
+//			where.append(" AND renttype.code IN (" +String.join(",", code) +") ");
+//		}
+		// java 8
 		if(renttype != null && renttype.size() != 0) {
-			List<String > code = new ArrayList<>();
-			for (String item : renttype) {
-				code.add("'" + item + "'");
-			}
-			where.append(" AND renttype.code IN (" +String.join(",", code) +") ");
+			where.append(" AND ( ");
+			String sql = renttype.stream().map(i -> "renttype.code LIKE '%" +i +"%' ").collect(Collectors.joining(" OR "));
+			where.append(sql);
+			where.append(" ) ");
 		}
-		
 	}
 	
 	@Override

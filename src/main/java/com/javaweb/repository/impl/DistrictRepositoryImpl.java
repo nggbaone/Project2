@@ -17,7 +17,7 @@ public class DistrictRepositoryImpl implements DistrictRepository{
 
 	@Override 
 	public DistrictEntity findNameById(Long id) {
-		String sql = " SELECT d.name FROM district d WHERE d.id = " +id +" ";
+		String sql = " SELECT district.name FROM district WHERE district.id = " +id +" ";
 		DistrictEntity districtEntity = new DistrictEntity();
 		try (
 				Connection conn = ConnectionJDBCUtil.getConnection();
