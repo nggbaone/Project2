@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.javaweb.model.BuildingDTO;
 import com.javaweb.model.BuildingRequestDTO;
+import com.javaweb.repository.BuildingRepository;
 import com.javaweb.repository.entity.BuildingEntity;
 import com.javaweb.repository.entity.DistrictEntity;
 import com.javaweb.service.BuildingService;
@@ -29,11 +30,21 @@ public class BuildingAPI {
 	
 	@Autowired
 	private BuildingService buildingService;
+	
+	@Autowired
+	private BuildingRepository buildingRepository;
 
 	@GetMapping(value = "/api/building/")
 	public List<BuildingDTO> getBuilding(@RequestParam Map<String, Object> params,
 										 @RequestParam(value = "renttype", required = false) List<String> renttype) {
 		List<BuildingDTO> result = buildingService.findAll(params,renttype);
+		return result;
+	}
+	
+	@GetMapping(value = "/api/building/{id}")
+	public BuildingDTO getBuildingById(@PathVariable Long id) {
+		BuildingDTO result = new BuildingDTO();
+		BuildingEntity buildingEntity = buildingRepository.findById(id).get();
 		return result;
 	}
 	
@@ -55,22 +66,19 @@ public class BuildingAPI {
 	
 	@PutMapping(value = "/api/building/")
 	public void updateBuilding(@RequestBody BuildingRequestDTO buildingRequestDTO) {
-		BuildingEntity buildingEntity = new BuildingEntity();
-		buildingEntity.setId(1L);
+		BuildingEntity buildingEntity = buildingRepository.findById(buildingRequestDTO.getId()).get(); 
 		buildingEntity.setName(buildingRequestDTO.getName());
 		buildingEntity.setStreet(buildingRequestDTO.getStreet());
 		buildingEntity.setWard(buildingRequestDTO.getWard());
 		DistrictEntity districtEntity = new DistrictEntity();
 		districtEntity.setId(buildingRequestDTO.getDistrict());
 		buildingEntity.setDistrict(districtEntity);
-		entityManager.merge(buildingEntity);
-		System.out.print("ok");
+		buildingRepository.save(buildingEntity);
 	} 
 	
 	@DeleteMapping(value = "/api/building/{id}")
 	public void deleteBuilding(@PathVariable Long id) {
-		BuildingEntity buildingEntity = entityManager.find(BuildingEntity.class, id);
-		entityManager.remove(buildingEntity);
+		buildingRepository.deleteById(id); 
 		
 	}
 

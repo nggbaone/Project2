@@ -1,11 +1,6 @@
-package com.javaweb.repository.impl;
+package com.javaweb.repository.custom.impl;
 
 import java.lang.reflect.Field;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -13,15 +8,15 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.Query;
 
+import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
 import com.javaweb.builder.BuildingSearchBuilder;
-import com.javaweb.repository.BuildingRepository;
+import com.javaweb.repository.custom.BuildingRepositoryCustom;
 import com.javaweb.repository.entity.BuildingEntity;
-import com.javaweb.utils.ConnectionJDBCUtil;
 
 @Repository
-public class JDBCBuildingRepositoryImpl implements BuildingRepository {
+public class BuildingRepositoryImpl  implements BuildingRepositoryCustom{
 
 	@PersistenceContext
 	private EntityManager entityManager;
@@ -101,39 +96,18 @@ public class JDBCBuildingRepositoryImpl implements BuildingRepository {
 		}
 	}
 
-	@Override
+//	@Override
 	public List<BuildingEntity> findAll(BuildingSearchBuilder buildingSearchBuilder) {
 		StringBuilder sql = new StringBuilder(
-				" SELECT building.id, building.name, building.districtid, building.street, building.ward, building.numberofbasement, building.floorarea, building.rentprice, building.managername, building.managerphonenumber, building.servicefee, building.brokeragefee FROM building ");
+				" SELECT * FROM building ");
 		StringBuilder where = new StringBuilder(" WHERE 1 = 1 ");
 		joinTable(buildingSearchBuilder, sql);
 		queryNomal(buildingSearchBuilder, where);
 		querySpecial(buildingSearchBuilder, where);
 		where.append(" GROUP BY building.id ");
 		sql.append(where);
+		// khi dùng đoạn dướicâu select phải có các thuộc tính trong Entity nó mới chạy 
 		Query query = entityManager.createNativeQuery(sql.toString(),BuildingEntity.class);
-//		List<BuildingEntity> result = new ArrayList<>();
-//		try (Connection conn = ConnectionJDBCUtil.getConnection();
-//				Statement stmt = conn.createStatement();
-//				ResultSet rs = stmt.executeQuery(sql.toString());) {
-//			while (rs.next()) {
-//				BuildingEntity building = new BuildingEntity();
-//				building.setId(rs.getLong("building.id"));
-//				building.setName(rs.getString("building.name"));
-//				building.setWard(rs.getString("building.ward"));
-////				building.setDistrictid(rs.getLong("building.districtid"));
-//				building.setStreet(rs.getString("building.street"));
-////				building.setFloorArea(rs.getLong("building.floorarea"));
-//				building.setRentPrice(rs.getLong("building.rentprice"));
-////				building.setServiceFee(rs.getString("building.servicefee"));
-////				building.setBrokerageFee(rs.getLong("building.brokeragefee"));
-//				building.setManagerName(rs.getString("building.managername"));
-//				building.setManagerPhoneNumber(rs.getString("building.managerphonenumber"));
-//				result.add(building);
-//			}
-//		} catch (SQLException e) {
-//			e.printStackTrace();
-//		} 
 		return query.getResultList();
 	}
 
